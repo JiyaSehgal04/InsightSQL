@@ -32,14 +32,30 @@ def get_embedder() -> Any:
     return SentenceTransformer("all-MiniLM-L6-v2")
 
 
+def _make_ef() -> Any:
+    """Wrap the already-downloaded sentence-transformers model as a ChromaDB EF.
+
+    Passing this to every collection create/get prevents ChromaDB from downloading
+    its own 79 MB ONNX model at runtime.
+    """
+    from chromadb import EmbeddingFunction
+
+    class _SentenceTransformerEF(EmbeddingFunction):
+        def __call__(self, input: list[str]) -> list[list[float]]:
+            return get_embedder().encode(list(input)).tolist()
+
+    return _SentenceTransformerEF()
+
+
 def build_chroma_indexes(persist_dir: Path) -> None:
     _quiet_transformers_import_noise()
     import chromadb
 
+    ef = _make_ef()
     persist_dir.mkdir(parents=True, exist_ok=True)
     client = chromadb.PersistentClient(path=str(persist_dir))
-    schema_collection = client.get_or_create_collection("schema_chunks")
-    example_collection = client.get_or_create_collection("examples")
+    schema_collection = client.get_or_create_collection("schema_chunks", embedding_function=ef)
+    example_collection = client.get_or_create_collection("examples", embedding_function=ef)
     _upsert(schema_collection, build_column_chunks())
     _upsert(example_collection, [
         {**pair, "text": f"Q: {pair['question']}\nSQL: {pair['sql']}"}
@@ -53,8 +69,12 @@ def load_chroma_indexes(persist_dir: Path) -> tuple[Any, Any]:
     try:
         import chromadb
 
+        ef = _make_ef()
         client = chromadb.PersistentClient(path=str(persist_dir))
-        return client.get_collection("schema_chunks"), client.get_collection("examples")
+        return (
+            client.get_collection("schema_chunks", embedding_function=ef),
+            client.get_collection("examples", embedding_function=ef),
+        )
     except Exception as exc:
         raise RAGIndexMissing(str(exc)) from exc
 

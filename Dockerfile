@@ -9,8 +9,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Bake the embedding model into the image — avoids a 90MB HuggingFace download on every cold start
+# Bake both embedding models into the image — avoids ~170MB of downloads on every cold start.
+# sentence-transformers: used directly by our code.
+# chromadb default EF (ONNX): pre-downloaded so any chromadb internal path is covered.
 RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
+RUN python -c "from chromadb.utils.embedding_functions import ONNXMiniLM_L6_V2; ONNXMiniLM_L6_V2()"
 
 COPY . .
 
