@@ -15,9 +15,11 @@ ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
+print("[startup] importing backend modules...", flush=True)
 from backend.app.controller import run_agent_pipeline
 from backend.app.core.config import get_settings
 from backend.app.db.health import check_database_health
+print("[startup] backend imports done", flush=True)
 
 st.set_page_config(page_title="InsightSQL", layout="wide")
 settings = get_settings()
@@ -727,7 +729,9 @@ def _render_state(state: dict) -> None:
 
 _inject_css()
 
+print("[startup] checking database health...", flush=True)
 db_health = check_database_health()
+print(f"[startup] db health done: connected={db_health['is_connected']}", flush=True)
 
 status_html = "".join(
     [
