@@ -3,8 +3,8 @@ set -e
 
 echo "=== InsightSQL startup ==="
 echo "PORT         : ${PORT:-not set, will default to 8501}"
-echo "DATABASE_URL : ${DATABASE_URL:+set}${DATABASE_URL:-NOT SET}"
-echo "GROQ_API_KEY : ${GROQ_API_KEY:+set}${GROQ_API_KEY:-NOT SET}"
+[ -n "$DATABASE_URL" ] && echo "DATABASE_URL : set" || echo "DATABASE_URL : NOT SET"
+[ -n "$GROQ_API_KEY" ] && echo "GROQ_API_KEY : set" || echo "GROQ_API_KEY : NOT SET"
 echo "=========================="
 
 # Seed Northwind schema on first boot (checks if the orders table exists)
