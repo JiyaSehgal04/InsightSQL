@@ -16,8 +16,8 @@ fi
 # Build ChromaDB RAG index on first boot (rebuilds from static Python data, ~10s)
 if [ ! -d ".rag_index" ]; then
     echo "Building RAG index..."
-    python scripts/build_rag_index.py
-    echo "RAG index ready."
+    python scripts/build_rag_index.py || echo "Warning: RAG index build failed, continuing anyway"
+    echo "RAG index step complete."
 fi
 
 exec streamlit run frontend/streamlit_app.py \
