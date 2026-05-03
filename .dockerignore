@@ -1,0 +1,12 @@
+.git
+.rag_index
+__pycache__
+*.pyc
+*.pyo
+.env
+.pytest_cache
+.reports
+sub-docs
+plan
+tests
+evaluation
